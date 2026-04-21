@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -19,6 +21,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+        buildConfigField("String", "FOOTBALL_API_KEY", "\"${properties["FOOTBALL_API_KEY"]}\"")
+        buildConfigField("String", "FOOTBALL_API_HOST", "\"${properties["FOOTBALL_API_HOST"]}\"")
     }
 
     buildTypes {
@@ -36,6 +43,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true  // nécessaire pour exposer ta clé API
     }
 }
 
@@ -65,6 +73,10 @@ dependencies {
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
+    // OkHttp (client HTTP sous Retrofit, pour les headers API key)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
