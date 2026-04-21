@@ -6,7 +6,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Set of Material typography styles to start with
+/**
+ * Application-wide Material 3 typography configuration.
+ *
+ * Only [Typography.bodyLarge] is customised here (16 sp, normal weight, 0.5 sp letter spacing).
+ * All other text styles inherit the Material 3 defaults. Override additional styles in this
+ * object as the design system evolves.
+ */
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,

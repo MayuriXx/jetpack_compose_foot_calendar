@@ -14,41 +14,61 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel for the calendar screen.
+ *
+ * Loads today's fixtures via [FootballRepository] on initialisation and exposes a reactive
+ * filter chain built on top of [StateFlow] and [combine]. Filters (status, country, league)
+ * are independent of each other except that changing the country resets the league selection.
+ *
+ * @param repository The data source used to fetch today's fixtures.
+ */
 class CalendarViewModel(
     private val repository: FootballRepository
 ) : ViewModel() {
 
-    // ─── État brut ────────────────────────────────────────────────
+    // ─── Raw state ────────────────────────────────────────────────────────────
 
     private val _uiState = MutableStateFlow<UiState<List<Match>>>(UiState.Loading)
+
+    /** Current loading/success/error state of the fixtures request. */
     val uiState: StateFlow<UiState<List<Match>>> = _uiState
 
-    // ─── Filtres ──────────────────────────────────────────────────
+    // ─── Filters ──────────────────────────────────────────────────────────────
 
     private val _selectedStatus = MutableStateFlow("all")
+
+    /** Currently selected status filter value (`"all"`, `"live"`, `"upcoming"`, `"finished"`). */
     val selectedStatus: StateFlow<String> = _selectedStatus
 
     private val _selectedCountry = MutableStateFlow("all")
+
+    /** Currently selected country filter value, or `"all"` for no country filter. */
     val selectedCountry: StateFlow<String> = _selectedCountry
 
     private val _selectedLeague = MutableStateFlow("all")
+
+    /** Currently selected league ID filter value, or `"all"` for no league filter. */
     val selectedLeague: StateFlow<String> = _selectedLeague
 
-    // ─── Données dérivées ─────────────────────────────────────────
+    // ─── Derived data ─────────────────────────────────────────────────────────
 
-    // Liste des pays disponibles — équivalent de ton computed countries
+    /**
+     * Distinct sorted list of country names derived from the loaded fixtures.
+     * Empty while the data is loading or in error state.
+     */
     val countries: StateFlow<List<String>> = _uiState
         .map { state ->
             if (state is UiState.Success) {
-                state.data
-                    .map { it.league.country }
-                    .distinct()
-                    .sorted()
+                state.data.map { it.league.country }.distinct().sorted()
             } else emptyList()
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    // Liste des ligues filtrées par pays — équivalent de ton computed leagues
+    /**
+     * Distinct sorted list of leagues, filtered by the currently selected country.
+     * Empty while the data is loading or in error state.
+     */
     val leagues: StateFlow<List<League>> = combine(
         _uiState, _selectedCountry
     ) { state, country ->
@@ -61,7 +81,10 @@ class CalendarViewModel(
         } else emptyList()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    // Matchs filtrés — équivalent de ton computed filteredMatches
+    /**
+     * The list of matches that match all currently active filters.
+     * Empty while the data is loading or in error state.
+     */
     val filteredMatches: StateFlow<List<Match>> = combine(
         _uiState, _selectedStatus, _selectedCountry, _selectedLeague
     ) { state, status, country, league ->
@@ -75,19 +98,26 @@ class CalendarViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    // Matchs groupés par ligue — équivalent de ton filteredMatchesByLeague
+    /**
+     * Filtered matches grouped by their [League], ready for sectioned rendering.
+     * Empty while the data is loading or in error state.
+     */
     val matchesByLeague: StateFlow<Map<League, List<Match>>> = filteredMatches
-        .map { matches ->
-            matches.groupBy { it.league }
-        }
+        .map { matches -> matches.groupBy { it.league } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyMap())
 
-    // ─── Actions ──────────────────────────────────────────────────
+    // ─── Actions ──────────────────────────────────────────────────────────────
 
     init {
-        loadTodayMatches() // chargement automatique au démarrage
+        loadTodayMatches()
     }
 
+    /**
+     * Triggers a fresh load of today's fixtures from the repository.
+     *
+     * Sets [uiState] to [UiState.Loading] before the request, then transitions to
+     * [UiState.Success] or [UiState.Error] depending on the result.
+     */
     fun loadTodayMatches() {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
@@ -98,19 +128,35 @@ class CalendarViewModel(
         }
     }
 
+    /**
+     * Updates the status filter.
+     *
+     * @param status One of `"all"`, `"live"`, `"upcoming"`, or `"finished"`.
+     */
     fun setStatusFilter(status: String) {
         _selectedStatus.value = status
     }
 
+    /**
+     * Updates the country filter and resets the league filter to `"all"`.
+     *
+     * @param country The country name to filter by, or `"all"` to show all countries.
+     */
     fun setCountryFilter(country: String) {
         _selectedCountry.value = country
-        _selectedLeague.value = "all" // reset la ligue quand on change de pays
+        _selectedLeague.value = "all"
     }
 
+    /**
+     * Updates the league filter.
+     *
+     * @param league The league ID as a string to filter by, or `"all"` to show all leagues.
+     */
     fun setLeagueFilter(league: String) {
         _selectedLeague.value = league
     }
 
+    /** Resets all filters to their default value (`"all"`). */
     fun resetFilters() {
         _selectedStatus.value = "all"
         _selectedCountry.value = "all"

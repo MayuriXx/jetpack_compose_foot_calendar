@@ -11,13 +11,32 @@ import java.time.LocalDate
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
+/**
+ * Single source of truth for all football data in the application.
+ *
+ * Implements a **cache-first** strategy: every method checks [CacheManager] before making an
+ * API call. Results are always wrapped in [Result] so callers can handle success and failure
+ * without try/catch at the UI layer.
+ *
+ * @param api   The Retrofit service used to fetch data from API-Football.
+ * @param cache The [CacheManager] used to persist and retrieve cached responses.
+ */
 class FootballRepository(
     private val api: FootballApiService,
     private val cache: CacheManager
 ) {
 
-    // ─── Matchs du jour ───────────────────────────────────────────
+    // ─── Today's matches ──────────────────────────────────────────────────────
 
+    /**
+     * Returns today's fixtures for all leagues.
+     *
+     * Cache key: `"matches_today"` — TTL: **60 minutes** (today's matches can change status
+     * throughout the day as games start and finish).
+     *
+     * @return [Result.success] with the list of today's [Match] objects, or
+     *         [Result.failure] wrapping the exception if the API call fails.
+     */
     suspend fun getTodayMatches(): Result<List<Match>> {
         val cacheKey = "matches_today"
 
@@ -42,8 +61,24 @@ class FootballRepository(
         }
     }
 
-    // ─── Détail d'un match ────────────────────────────────────────
+    // ─── Match detail ─────────────────────────────────────────────────────────
 
+    /**
+     * Returns the full detail for a single fixture, including statistics, events and lineups.
+     *
+     * The four API calls (fixture, statistics, events, lineups) are executed in **parallel**
+     * using [async]/[kotlinx.coroutines.Deferred.await] inside a [coroutineScope].
+     *
+     * The TTL is **adaptive** based on match status:
+     * - [MatchStatus.LIVE] → 5 minutes (data changes rapidly)
+     * - [MatchStatus.UPCOMING] or [MatchStatus.FINISHED] → 120 minutes
+     * - Any other status → 60 minutes
+     *
+     * Cache key: `"match_detail_<fixtureId>"`
+     *
+     * @param fixtureId The unique fixture identifier.
+     * @return [Result.success] with the [MatchDetail], or [Result.failure] on error.
+     */
     suspend fun getMatchDetail(fixtureId: Int): Result<MatchDetail> {
         val cacheKey = "match_detail_$fixtureId"
 
@@ -86,8 +121,21 @@ class FootballRepository(
         }
     }
 
-    // ─── Classement ───────────────────────────────────────────────
+    // ─── Standings ────────────────────────────────────────────────────────────
 
+    /**
+     * Returns the league standings table for the given league.
+     *
+     * Only the first group of the first response entry is used, which corresponds to the main
+     * table of regular league competitions. Cup competitions with multiple groups are not
+     * fully supported.
+     *
+     * Cache key: `"standings_<leagueId>"` — TTL: **30 minutes**.
+     *
+     * @param leagueId The unique league identifier.
+     * @return [Result.success] with the sorted list of [Standing] entries, or
+     *         [Result.failure] on error. Returns an empty list if no standings are available.
+     */
     suspend fun getStandings(leagueId: Int): Result<List<Standing>> {
         val cacheKey = "standings_$leagueId"
 
@@ -100,7 +148,7 @@ class FootballRepository(
                 .firstOrNull()
                 ?.league
                 ?.standings
-                ?.firstOrNull()      // première poule (ligue normale = 1 seule poule)
+                ?.firstOrNull()
                 ?.map { it.toDomain() }
                 ?: emptyList()
 

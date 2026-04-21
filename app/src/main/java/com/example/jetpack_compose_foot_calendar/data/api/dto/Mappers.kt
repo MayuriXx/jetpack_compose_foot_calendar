@@ -1,3 +1,9 @@
+/**
+ * Mapping functions that convert API DTOs to domain model objects.
+ *
+ * All functions are stateless extension functions and do not depend on any external state.
+ * They form the anti-corruption layer between the raw API responses and the rest of the app.
+ */
 package com.example.jetpack_compose_foot_calendar.data.api.dto
 
 import com.example.jetpack_compose_foot_calendar.domain.model.EventType
@@ -12,6 +18,12 @@ import com.example.jetpack_compose_foot_calendar.domain.model.Team
 import com.example.jetpack_compose_foot_calendar.domain.model.TeamLineup
 import com.example.jetpack_compose_foot_calendar.domain.model.TeamStatistics
 
+/**
+ * Converts a [FixtureResponseDto] to a [Match] domain model.
+ *
+ * @receiver The raw fixture response from the API.
+ * @return   A fully populated [Match] instance.
+ */
 fun FixtureResponseDto.toDomain(): Match {
     return Match(
         fixtureId = fixture.id,
@@ -30,6 +42,19 @@ fun FixtureResponseDto.toDomain(): Match {
     )
 }
 
+/**
+ * Converts an API-Football short status code to a [MatchStatus] enum value.
+ *
+ * | API codes              | Result                    |
+ * |------------------------|---------------------------|
+ * | `1H`, `2H`, `HT`, `ET`, `P`, `LIVE` | [MatchStatus.LIVE]     |
+ * | `NS`, `TBD`            | [MatchStatus.UPCOMING]    |
+ * | `FT`, `AET`, `PEN`     | [MatchStatus.FINISHED]    |
+ * | anything else          | [MatchStatus.UNKNOWN]     |
+ *
+ * @receiver The short code string as returned by the API (e.g. `"FT"`, `"1H"`).
+ * @return   The corresponding [MatchStatus].
+ */
 fun String.toMatchStatus(): MatchStatus {
     return when (this) {
         "1H", "2H", "HT", "ET", "P", "LIVE" -> MatchStatus.LIVE
@@ -39,6 +64,12 @@ fun String.toMatchStatus(): MatchStatus {
     }
 }
 
+/**
+ * Converts a [StandingEntryDto] to a [Standing] domain model.
+ *
+ * @receiver The raw standing entry from the API.
+ * @return   A fully populated [Standing] instance.
+ */
 fun StandingEntryDto.toDomain(): Standing {
     return Standing(
         rank = rank,
@@ -52,6 +83,15 @@ fun StandingEntryDto.toDomain(): Standing {
     )
 }
 
+/**
+ * Converts a [TeamStatisticsDto] to a [TeamStatistics] domain model.
+ *
+ * Statistics are stored as a [Map] keyed by the statistic type label. Null values from the
+ * API are replaced with an empty string.
+ *
+ * @receiver The raw team statistics from the API.
+ * @return   A [TeamStatistics] instance with the statistics map.
+ */
 fun TeamStatisticsDto.toDomain(): TeamStatistics {
     return TeamStatistics(
         team = Team(id = team.id, name = team.name, logo = team.logo),
@@ -59,6 +99,15 @@ fun TeamStatisticsDto.toDomain(): TeamStatistics {
     )
 }
 
+/**
+ * Converts a [MatchEventDto] to a [MatchEvent] domain model.
+ *
+ * The `type` string from the API is case-insensitively mapped to an [EventType] enum value.
+ * Unknown types fall back to [EventType.UNKNOWN].
+ *
+ * @receiver The raw match event from the API.
+ * @return   A fully populated [MatchEvent] instance.
+ */
 fun MatchEventDto.toDomain(): MatchEvent {
     return MatchEvent(
         minute = time.elapsed,
@@ -75,6 +124,12 @@ fun MatchEventDto.toDomain(): MatchEvent {
     )
 }
 
+/**
+ * Converts a [TeamLineupDto] to a [TeamLineup] domain model.
+ *
+ * @receiver The raw team lineup from the API.
+ * @return   A [TeamLineup] with mapped starting XI and substitutes.
+ */
 fun TeamLineupDto.toDomain(): TeamLineup {
     return TeamLineup(
         team = Team(id = team.id, name = team.name, logo = team.logo),
@@ -84,6 +139,14 @@ fun TeamLineupDto.toDomain(): TeamLineup {
     )
 }
 
+/**
+ * Converts a [LineupPlayerDetailDto] to a [Player] domain model.
+ *
+ * A null position is replaced with an empty string.
+ *
+ * @receiver The raw player detail from the lineup response.
+ * @return   A fully populated [Player] instance.
+ */
 fun LineupPlayerDetailDto.toDomain(): Player {
     return Player(
         id = id,

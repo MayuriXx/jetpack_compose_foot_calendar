@@ -11,12 +11,14 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+/** Dark colour scheme using the [Purple80] / [PurpleGrey80] / [Pink80] palette. */
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
     tertiary = Pink80
 )
 
+/** Light colour scheme using the [Purple40] / [PurpleGrey40] / [Pink40] palette. */
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
@@ -33,10 +35,22 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+/**
+ * Root Material 3 theme for the application.
+ *
+ * Colour scheme selection priority:
+ * 1. **Dynamic colour** (Android 12+ / API 31+): wallpaper-based tones pulled from the system.
+ * 2. **Static dark scheme** ([DarkColorScheme]) when [darkTheme] is `true`.
+ * 3. **Static light scheme** ([LightColorScheme]) otherwise.
+ *
+ * @param darkTheme     Whether to use the dark colour scheme. Defaults to the system setting.
+ * @param dynamicColor  Whether to enable dynamic colour (Material You). Defaults to `true`.
+ *                      Has no effect on devices running below Android 12 (API 31).
+ * @param content       The composable content to render inside the theme.
+ */
 @Composable
 fun JetPackComposeFootCalendarTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {

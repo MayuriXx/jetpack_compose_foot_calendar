@@ -27,6 +27,19 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+/**
+ * Login screen composable.
+ *
+ * Displays a centered form with username and password fields, an optional inline error
+ * message, and a submit button that shows a loading indicator while the request is in flight.
+ *
+ * A [LaunchedEffect] watches [AuthViewModel.isAuthenticated] and calls [onLoginSuccess]
+ * as soon as the flag becomes `true`, triggering the navigation to the calendar screen.
+ *
+ * @param authViewModel  The [AuthViewModel] that drives authentication state.
+ *                       Defaults to the default [viewModel] instance.
+ * @param onLoginSuccess Callback invoked when the user is successfully authenticated.
+ */
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel = viewModel(),

@@ -43,6 +43,17 @@ import com.example.jetpack_compose_foot_calendar.domain.model.Match
 import com.example.jetpack_compose_foot_calendar.domain.model.MatchStatus
 import com.example.jetpack_compose_foot_calendar.ui.common.UiState
 
+/**
+ * Main calendar screen composable.
+ *
+ * Renders a [Scaffold] with a top app bar, a [FilterBar] for status/country/league filtering,
+ * and a reactive content area that switches between a loading spinner, an error message, an
+ * empty-state notice, and the sectioned list of matches grouped by league.
+ *
+ * @param viewModel      The [CalendarViewModel] providing the reactive state and filter actions.
+ * @param onMatchClick   Callback invoked with the fixture ID when the user taps a match card.
+ * @param onProfileClick Callback invoked when the user taps the profile icon in the top bar.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(
@@ -149,6 +160,23 @@ fun CalendarScreen(
 
 // ── Composants internes ───────────────────────────────────────────────
 
+/**
+ * Filter bar displayed below the top app bar.
+ *
+ * Organises four controls in two rows:
+ * - Row 1: status dropdown, country dropdown.
+ * - Row 2: league dropdown, reset button.
+ *
+ * @param selectedStatus  Currently active status filter value.
+ * @param selectedCountry Currently active country filter value.
+ * @param selectedLeague  Currently active league filter value.
+ * @param countries       List of country names available for selection.
+ * @param leagues         List of league names filtered by the selected country.
+ * @param onStatusChange  Callback when the status selection changes.
+ * @param onCountryChange Callback when the country selection changes.
+ * @param onLeagueChange  Callback when the league selection changes.
+ * @param onReset         Callback when the user taps the reset button.
+ */
 @Composable
 private fun FilterBar(
     selectedStatus: String,
@@ -204,7 +232,18 @@ private fun FilterBar(
     }
 }
 
-// Composant dropdown réutilisable
+/**
+ * Generic reusable dropdown button selector.
+ *
+ * Displays an [OutlinedButton] that opens a [DropdownMenu] when tapped. Each option in
+ * [options] is a pair of (value, display label); the [value] is passed to [onSelect] while
+ * the [display] label is shown to the user.
+ *
+ * @param label    Text displayed on the button when no option is selected or as a placeholder.
+ * @param options  List of (value, display) pairs to show in the dropdown.
+ * @param onSelect Callback invoked with the selected value string.
+ * @param modifier Optional [Modifier] applied to the root [Box].
+ */
 @Composable
 private fun DropdownSelector(
     label: String,
@@ -238,6 +277,14 @@ private fun DropdownSelector(
     }
 }
 
+/**
+ * Section header row for a league group in the matches list.
+ *
+ * Displays the country flag (falling back to the league logo when unavailable), the league
+ * logo, and a combined `"Country · League"` text label.
+ *
+ * @param league The [League] whose information is displayed.
+ */
 @Composable
 private fun LeagueHeader(league: League) {
     Row(
@@ -265,6 +312,18 @@ private fun LeagueHeader(league: League) {
     }
 }
 
+/**
+ * Card composable representing a single match in the list.
+ *
+ * Layout:
+ * - Left section: home team badge + name.
+ * - Centre section: kick-off time (for [MatchStatus.UPCOMING]) or score, with a red
+ *   `"LIVE"` label for in-progress matches.
+ * - Right section: away team name + badge.
+ *
+ * @param match   The [Match] data to display.
+ * @param onClick Callback invoked when the user taps the card.
+ */
 @Composable
 fun MatchCard(
     match: Match,

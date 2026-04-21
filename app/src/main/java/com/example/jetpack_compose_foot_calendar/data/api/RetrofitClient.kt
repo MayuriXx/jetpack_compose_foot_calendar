@@ -6,8 +6,25 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+/**
+ * Singleton that provides the [FootballApiService] Retrofit instance.
+ *
+ * The client is lazily initialised and shared for the lifetime of the process. Two OkHttp
+ * interceptors are attached:
+ * - A [HttpLoggingInterceptor] at `BODY` level for debugging HTTP traffic.
+ * - A custom interceptor that injects the `x-apisports-key` authentication header using
+ *   the API key stored in [BuildConfig.FOOTBALL_API_KEY].
+ *
+ * The base URL is read from [BuildConfig.FOOTBALL_API_HOST] and must include the scheme
+ * (`https://`) and a trailing slash.
+ */
 object RetrofitClient {
 
+    /**
+     * Lazily created [FootballApiService] instance.
+     *
+     * Thread-safe due to Kotlin's `by lazy` delegation with the default [LazyThreadSafetyMode.SYNCHRONIZED] mode.
+     */
     val footballApi: FootballApiService by lazy {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
