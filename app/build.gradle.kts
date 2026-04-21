@@ -85,4 +85,8 @@ dependencies {
     // Coil — affichage d'images depuis une URL (logos des équipes)
     implementation("io.coil-kt:coil-compose:2.6.0")
 
+    // Material Icons
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
+
 }

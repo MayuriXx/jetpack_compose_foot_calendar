@@ -1,6 +1,5 @@
 package com.example.jetpack_compose_foot_calendar
 
-import AppNavGraph
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -12,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.jetpack_compose_foot_calendar.data.api.RetrofitClient
 import com.example.jetpack_compose_foot_calendar.data.cache.CacheManager
 import com.example.jetpack_compose_foot_calendar.data.repository.FootballRepository
+import com.example.jetpack_compose_foot_calendar.navigation.AppNavGraph
 import com.example.jetpack_compose_foot_calendar.ui.theme.JetPackComposeFootCalendarTheme
 
 // Delegate de haut niveau — crée le DataStore une seule fois pour l'application

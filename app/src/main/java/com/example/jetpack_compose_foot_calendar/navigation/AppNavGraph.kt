@@ -14,6 +14,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.jetpack_compose_foot_calendar.data.repository.FootballRepository
 import com.example.jetpack_compose_foot_calendar.ui.auth.AuthViewModel
+import com.example.jetpack_compose_foot_calendar.ui.auth.LoginScreen
+import com.example.jetpack_compose_foot_calendar.ui.calendar.CalendarScreen
 import com.example.jetpack_compose_foot_calendar.ui.calendar.CalendarViewModel
 import com.example.jetpack_compose_foot_calendar.ui.matchdetail.MatchDetailViewModel
 import com.example.jetpack_compose_foot_calendar.ui.profile.ProfileViewModel
@@ -59,11 +61,26 @@ fun AppNavGraph(
         startDestination = Routes.LOGIN
     ) {
         composable(Routes.LOGIN) {
-            // LoginScreen — étape suivante
+            LoginScreen(
+                authViewModel = authViewModel,
+                onLoginSuccess = {
+                    navController.navigate(Routes.CALENDAR) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable(Routes.CALENDAR) {
-            // CalendarScreen — étape suivante
+            CalendarScreen(
+                viewModel = calendarViewModel,
+                onMatchClick = { fixtureId ->
+                    navController.navigate(Routes.matchDetail(fixtureId))
+                },
+                onProfileClick = {
+                    navController.navigate(Routes.PROFILE)
+                }
+            )
         }
 
         composable(
