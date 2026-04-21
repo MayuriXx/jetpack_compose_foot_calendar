@@ -31,8 +31,7 @@ interface FootballApiService {
     @GET("fixtures")
     suspend fun getFixturesByDate(
         @Query("date") date: String,
-        @Query("league") leagueId: Int? = null,
-        @Query("season") season: Int = 2024
+        @Query("league") leagueId: Int? = null
     ): FixturesResponseDto
 
     /**
@@ -99,6 +98,6 @@ interface FootballApiService {
     @GET("standings")
     suspend fun getStandings(
         @Query("league") leagueId: Int,
-        @Query("season") season: Int = 2024
+        @Query("season") season: Int
     ): StandingsResponseDto
 }

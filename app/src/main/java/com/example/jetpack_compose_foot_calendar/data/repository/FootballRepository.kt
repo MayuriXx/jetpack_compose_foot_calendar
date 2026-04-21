@@ -26,6 +26,18 @@ class FootballRepository(
     private val cache: CacheManager
 ) {
 
+    /**
+     * Returns the current football season year.
+     *
+     * Football seasons typically start in August/September:
+     * - From August onwards → current year is the season (e.g. Aug 2025 → season 2025)
+     * - Before August → previous year is the season (e.g. Apr 2026 → season 2025)
+     */
+    private fun currentSeason(): Int {
+        val now = LocalDate.now()
+        return if (now.monthValue >= 8) now.year else now.year - 1
+    }
+
     // ─── Today's matches ──────────────────────────────────────────────────────
 
     /**
@@ -143,7 +155,7 @@ class FootballRepository(
         if (cached != null) return Result.success(cached)
 
         return try {
-            val response = api.getStandings(leagueId)
+            val response = api.getStandings(leagueId, currentSeason())
             val standings = response.response
                 .firstOrNull()
                 ?.league

@@ -13,11 +13,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.jetpack_compose_foot_calendar.data.repository.FootballRepository
+import com.example.jetpack_compose_foot_calendar.navigation.Routes.matchDetail
 import com.example.jetpack_compose_foot_calendar.ui.auth.AuthViewModel
 import com.example.jetpack_compose_foot_calendar.ui.auth.LoginScreen
 import com.example.jetpack_compose_foot_calendar.ui.calendar.CalendarScreen
 import com.example.jetpack_compose_foot_calendar.ui.calendar.CalendarViewModel
+import com.example.jetpack_compose_foot_calendar.ui.matchdetail.MatchDetailScreen
 import com.example.jetpack_compose_foot_calendar.ui.matchdetail.MatchDetailViewModel
+import com.example.jetpack_compose_foot_calendar.ui.profile.ProfileScreen
 import com.example.jetpack_compose_foot_calendar.ui.profile.ProfileViewModel
 
 /**
@@ -119,7 +122,7 @@ fun AppNavGraph(
             route = Routes.MATCH_DETAIL,
             arguments = listOf(navArgument("fixtureId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val fixtureId = backStackEntry.arguments?.getInt("fixtureId")
+            val fixtureId = backStackEntry.arguments?.getInt("fixtureId") ?: return@composable
             val matchDetailViewModel: MatchDetailViewModel = viewModel(
                 factory = object : ViewModelProvider.Factory {
                     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -128,11 +131,24 @@ fun AppNavGraph(
                     }
                 }
             )
-            // MatchDetailScreen — étape suivante
+            MatchDetailScreen(
+                fixtureId = fixtureId,
+                viewModel = matchDetailViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable(Routes.PROFILE) {
-            // ProfileScreen — étape suivante
+            ProfileScreen(
+                viewModel = profileViewModel,
+                authViewModel = authViewModel,
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }
