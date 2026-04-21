@@ -155,3 +155,16 @@ fun LineupPlayerDetailDto.toDomain(): Player {
         position = pos ?: ""
     )
 }
+
+/**
+ * Converts a [TeamEntryDto] (from `GET /teams`) to a [Team] domain model.
+ *
+ * @receiver The raw team entry from the `/teams` API response.
+ * @return   A [Team] instance.
+ */
+fun TeamEntryDto.toDomain(): Team = Team(
+    id   = team.id,
+    name = team.name,
+    logo = team.logo
+)
+
