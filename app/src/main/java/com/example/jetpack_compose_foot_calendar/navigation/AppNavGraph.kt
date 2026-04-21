@@ -79,7 +79,14 @@ fun AppNavGraph(
             }
         }
     )
-    val profileViewModel: ProfileViewModel = viewModel()
+    val profileViewModel: ProfileViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return ProfileViewModel(repository) as T
+            }
+        }
+    )
 
     // Authentication guard — redirect to login whenever the user is not authenticated
     val isAuthenticated by authViewModel.isAuthenticated.collectAsState()

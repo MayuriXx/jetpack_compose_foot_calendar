@@ -5,6 +5,7 @@ import com.example.jetpack_compose_foot_calendar.data.api.dto.FixturesResponseDt
 import com.example.jetpack_compose_foot_calendar.data.api.dto.LineupsResponseDto
 import com.example.jetpack_compose_foot_calendar.data.api.dto.StandingsResponseDto
 import com.example.jetpack_compose_foot_calendar.data.api.dto.StatisticsResponseDto
+import com.example.jetpack_compose_foot_calendar.data.api.dto.TeamsResponseDto
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -100,4 +101,19 @@ interface FootballApiService {
         @Query("league") leagueId: Int,
         @Query("season") season: Int
     ): StandingsResponseDto
+
+    /**
+     * Retrieves all teams participating in a league for a given season.
+     *
+     * Endpoint: `GET /teams`
+     *
+     * @param leagueId The API-Football league ID.
+     * @param season   The season year.
+     * @return A [TeamsResponseDto] containing the list of teams.
+     */
+    @GET("teams")
+    suspend fun getTeamsByLeague(
+        @Query("league") leagueId: Int,
+        @Query("season") season: Int
+    ): TeamsResponseDto
 }

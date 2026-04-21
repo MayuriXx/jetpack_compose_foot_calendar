@@ -7,6 +7,7 @@ import com.example.jetpack_compose_foot_calendar.domain.model.Match
 import com.example.jetpack_compose_foot_calendar.domain.model.MatchDetail
 import com.example.jetpack_compose_foot_calendar.domain.model.MatchStatus
 import com.example.jetpack_compose_foot_calendar.domain.model.Standing
+import com.example.jetpack_compose_foot_calendar.domain.model.Team
 import java.time.LocalDate
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -166,6 +167,33 @@ class FootballRepository(
 
             cache.set(cacheKey, standings, ttlMinutes = 30)
             Result.success(standings)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ─── Teams by league ──────────────────────────────────────────────────────
+
+    /**
+     * Returns the list of teams for a given league.
+     *
+     * Cache key: `"teams_<leagueId>_<season>"` — TTL: **1440 minutes** (24 h, teams don't change).
+     *
+     * @param leagueId The unique league identifier.
+     * @return [Result.success] with the list of [Team], or [Result.failure] on error.
+     */
+    suspend fun getTeams(leagueId: Int): Result<List<Team>> {
+        val season = currentSeason()
+        val cacheKey = "teams_${leagueId}_$season"
+
+        val cached = cache.get<List<Team>>(cacheKey)
+        if (cached != null) return Result.success(cached)
+
+        return try {
+            val response = api.getTeamsByLeague(leagueId, season)
+            val teams = response.response.map { it.toDomain() }.sortedBy { it.name }
+            cache.set(cacheKey, teams, ttlMinutes = 1440)
+            Result.success(teams)
         } catch (e: Exception) {
             Result.failure(e)
         }
